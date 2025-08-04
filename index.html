@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Tic Tac Toe Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes appear {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .cell-x {
+            color: #3b82f6;
+        }
+        
+        .cell-o {
+            color: #ef4444;
+        }
+        
+        .winning-cell {
+            animation: pulse 1s infinite;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.7);
+        }
+        
+        .new-move {
+            animation: appear 0.3s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 min-h-screen text-white font-sans">
+    <div class="container mx-auto px-4 py-12 flex flex-col items-center">
+        
+        <header class="mb-10 text-center">
+            <h1 class="text-5xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+                Premium Tic Tac Toe
+            </h1>
+            <p class="text-gray-300 text-lg ">
+                Challenge our AI in this classic game with a modern twist. Can you outsmart the computer?
+            </p>
+            <div class="mt-6">
+                <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/5954eb37-8e7d-4fb5-937b-6ef78c55c1e2.png" alt="Close-up of a futuristic game controller with glowing blue and red buttons representing X and O moves in Tic Tac Toe" />
+            </div>
+        </header>
+        
+        
+        <div class="flex justify-between w-full max-w-2xl mb-8">
+            <div class="flex items-center bg-gray-800 rounded-lg p-4 shadow-lg">
+                <div class="w-12 h-12 flex items-center justify-center bg-blue-900 rounded-lg mr-3">
+                    <span class="text-2xl font-bold">X</span>
+                </div>
+                <div>
+                    <p class="text-gray-300 text-sm">Player (You)</p>
+                    <p class="text-xl font-bold" id="player-score">0</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center bg-gray-800 rounded-lg p-4 shadow-lg">
+                <div class="w-12 h-12 flex items-center justify-center bg-red-900 rounded-lg mr-3">
+                    <span class="text-2xl font-bold">O</span>
+                </div>
+                <div>
+                    <p class="text-gray-300 text-sm">Computer</p>
+                    <p class="text-xl font-bold" id="computer-score">0</p>
+                </div>
+            </div>
+        </div>
+        
+       
+        <div class="mb-10 grid grid-cols-3 gap-4 w-full max-w-md" id="board">
+            
+        </div>
+        
+       
+        <div class="text-center mb-8">
+            <p class="text-xl font-semibold mb-2" id="game-status">Your turn! (X)</p>
+            <button id="restart-btn" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-full font-medium transition-all transform hover:scale-105">
+                New Game
+            </button>
+        </div>
+        
+        
+        <footer class="text-gray-400 text-sm mt-8">
+            <p> Premium Tic Tac Toe Challenge. By coder_shubham987.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const board = document.getElementById('board');
+            const gameStatus = document.getElementById('game-status');
+            const playerScoreEl = document.getElementById('player-score');
+            const computerScoreEl = document.getElementById('computer-score');
+            const restartBtn = document.getElementById('restart-btn');
+            
+            let boardState = ['', '', '', '', '', '', '', '', ''];
+            let currentPlayer = 'X';
+            let gameActive = true;
+            let scores = { player: 0, computer: 0 };
+            
+            
+            function createBoard() {
+                board.innerHTML = '';
+                boardState = ['', '', '', '', '', '', '', '', ''];
+                
+                for (let i = 0; i < 9; i++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add(
+                        'cell', 'w-full', 'h-24', 'bg-gray-800', 'rounded-xl',
+                        'flex', 'items-center', 'justify-center', 'text-5xl',
+                        'font-bold', 'cursor-pointer', 'shadow-lg',
+                        'hover:bg-gray-700', 'transition-colors'
+                    );
+                    cell.setAttribute('data-index', i);
+                    cell.addEventListener('click', handleCellClick);
+                    board.appendChild(cell);
+                }
+            }
+            
+            
+            function handleCellClick(e) {
+                const index = parseInt(e.target.getAttribute('data-index'));
+                
+                if (boardState[index] !== '' || !gameActive) return;
+                
+                makeMove(index, 'X');
+                
+                if (gameActive) {
+                    setTimeout(computerMove, 800);
+                }
+            }
+            
+            
+            function makeMove(index, player) {
+                boardState[index] = player;
+                const cell = board.children[index];
+                
+                cell.classList.add(player === 'X' ? 'cell-x' : 'cell-o');
+                cell.textContent = player;
+                cell.classList.add('new-move');
+                
+                setTimeout(() => {
+                    cell.classList.remove('new-move');
+                }, 300);
+                
+                const result = checkWin();
+                if (result !== null) {
+                    handleGameEnd(result);
+                    return;
+                }
+                
+                if (!boardState.includes('')) {
+                    handleGameEnd('draw');
+                    return;
+                }
+                
+                if (player === 'X') {
+                    currentPlayer = 'O';
+                    gameStatus.textContent = 'Computer thinking...';
+                } else {
+                    currentPlayer = 'X';
+                    gameStatus.textContent = 'Your turn! (X)';
+                }
+            }
+            
+            
+            function computerMove() {
+                if (!gameActive) return;
+                
+                
+                let move = findWinningMove('O');
+                
+                
+                if (move === -1) {
+                    move = findWinningMove('X');
+                }
+                
+                
+                if (move === -1 && boardState[4] === '') {
+                    move = 4;
+                }
+                
+                
+                if (move === -1) {
+                    const emptyCells = boardState
+                        .map((cell, index) => cell === '' ? index : -1)
+                        .filter(index => index !== -1);
+                    
+                    if (emptyCells.length > 0) {
+                        move = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                    }
+                }
+                
+                if (move !== -1) {
+                    makeMove(move, 'O');
+                }
+            }
+            
+            
+            function findWinningMove(player) {
+                const lines = [
+                    [0, 1, 2], [3, 4, 5], [6, 7, 8], 
+                    [0, 3, 6], [1, 4, 7], [2, 5, 8], 
+                    [0, 4, 8], [2, 4, 6]            
+                ];
+                
+                for (const line of lines) {
+                    const [a, b, c] = line;
+                    
+                    
+                    if (boardState[a] === player && boardState[b] === player && boardState[c] === '') {
+                        return c;
+                    }
+                    if (boardState[a] === player && boardState[c] === player && boardState[b] === '') {
+                        return b;
+                    }
+                    if (boardState[b] === player && boardState[c] === player && boardState[a] === '') {
+                        return a;
+                    }
+                }
+                
+                return -1;
+            }
+            
+            
+            function checkWin() {
+                const lines = [
+                    [0, 1, 2], [3, 4, 5], [6, 7, 8], 
+                    [0, 3, 6], [1, 4, 7], [2, 5, 8], 
+                    [0, 4, 8], [2, 4, 6]             
+                ];
+                
+                for (const line of lines) {
+                    const [a, b, c] = line;
+                    if (boardState[a] !== '' && boardState[a] === boardState[b] && boardState[a] === boardState[c]) {
+                        return line;
+                    }
+                }
+                
+                return null;
+            }
+            
+            
+            function handleGameEnd(result) {
+                gameActive = false;
+                
+                if (result === 'draw') {
+                    gameStatus.textContent = 'Game ended in a draw!';
+                } else {
+                    const winner = boardState[result[0]];
+                    
+                    
+                    result.forEach(index => {
+                        board.children[index].classList.add('winning-cell');
+                    });
+                    
+                    if (winner === 'X') {
+                        gameStatus.textContent = 'You win! 🎉';
+                        scores.player++;
+                        playerScoreEl.textContent = scores.player;
+                    } else {
+                        gameStatus.textContent = 'Computer wins! 😈';
+                        scores.computer++;
+                        computerScoreEl.textContent = scores.computer;
+                    }
+                }
+            }
+            
+            
+            function restartGame() {
+                gameActive = true;
+                currentPlayer = 'X';
+                gameStatus.textContent = 'Your turn! (X)';
+                
+                
+                Array.from(board.children).forEach(cell => {
+                    cell.classList.remove('winning-cell');
+                });
+                
+                createBoard();
+            }
+            
+            
+            createBoard();
+            restartBtn.addEventListener('click', restartGame);
+        });
+    </script>
+</body>
+</html>
+
